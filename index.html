@@ -3,16 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CI/CD Laboratuvarı</title>
+<title>CI/CD Laboratuvarı 3D</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- fontlar sayfayı bekletmesin: gelmezse sistem fontu kullanılır -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="style.css">
+<!-- Three.js r170 projeye dahil (vendor/), internet olmadan da çalışır -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three/three.module.js",
+    "three/addons/": "./vendor/three/addons/"
+  }
+}
+</script>
 </head>
 <body>
 
 <header class="topbar">
   <div class="brand">
     <span class="logo">⚙️</span>
-    <div><b>CI/CD Laboratuvarı</b><small>git push → canlı uygulama</small></div>
+    <div><b>CI/CD Laboratuvarı <span class="badge3d">3D</span></b><small>git push → canlı uygulama</small></div>
   </div>
 
   <div class="push-box">
@@ -36,44 +49,18 @@
 
 <main class="layout">
   <section class="stage-area">
-
-    <div class="pipeline">
-      <div class="card" id="card-dev">
-        <div class="card-h" data-ex="dev"><span class="ic">💻</span><div><b>Geliştirici</b><small>senin bilgisayarın</small></div><span class="info">ⓘ</span></div>
-        <pre class="mini-term" id="devTerm"></pre>
-      </div>
-
-      <div class="card" id="card-git">
-        <div class="card-h" data-ex="git"><span class="ic">🐙</span><div><b>Git Sunucusu</b><small>GitHub · sirket/web-app</small></div><span class="info">ⓘ</span></div>
-        <div class="branch">⎇ main</div>
-        <ul class="commits" id="commits"></ul>
-        <div class="webhook" id="webhook">🔔 webhook: push → Jenkins</div>
-      </div>
-
-      <div class="card" id="card-jenkins">
-        <div class="card-h" data-ex="jenkins"><span class="ic">🤵</span><div><b>Jenkins</b><small>CI sunucusu · <span id="buildNo">#1 ✓</span></small></div><span class="info">ⓘ</span></div>
+    <div class="strip">
+      <div class="panel jcard">
+        <div class="jc-h" data-ex="jenkins">🤵 <b>Jenkins pipeline</b> <span id="buildNo" class="pill">Build #1 ✓</span><span class="info">ⓘ</span></div>
         <div class="jstages" id="jstages"></div>
       </div>
 
-      <div class="card" id="card-docker">
-        <div class="card-h" data-ex="docker"><span class="ic">🐳</span><div><b>Docker Build</b><small>Dockerfile → image</small></div><span class="info">ⓘ</span></div>
-        <div class="layers" id="layers"></div>
-        <div class="image-out" id="imageOut"></div>
-      </div>
-
-      <div class="card" id="card-registry">
-        <div class="card-h" data-ex="registry"><span class="ic">📦</span><div><b>Registry</b><small>registry.sirket.com</small></div><span class="info">ⓘ</span></div>
-        <ul class="tags" id="tags"></ul>
-      </div>
-    </div>
-
-    <div class="card cluster" id="card-cluster">
-      <div class="rancher-bar" id="rancherBar">
-        <div class="crumbs" data-ex="rancher">🐮 <b>Rancher</b> <span>›</span> prod-cluster <span>›</span> namespace: default <span>›</span> Deployments <span class="info">ⓘ Rancher nedir?</span></div>
+      <div class="panel rancher" id="rancherBar">
+        <div class="crumbs" data-ex="rancher">🐮 <b>Rancher</b> <span>›</span> prod-cluster <span>›</span> default <span>›</span> Deployments <span class="info">ⓘ Rancher nedir?</span></div>
         <div class="workload">
-          <div class="wl-name" data-ex="deploy"><span class="badge" id="wlBadge">Active</span><b>☸️ web-app</b><code id="wlImage"></code></div>
+          <div class="wl-name" data-ex="deploy"><span class="badge" id="wlBadge">Active</span><b>web-app</b><code id="wlImage"></code></div>
           <div class="counters" data-ex="deploy">
-            <div class="ctr" title="spec.replicas — kaç pod istiyoruz"><span id="cDesired">3</span><small>İstenen</small></div>
+            <div class="ctr" title="spec.replicas: kaç pod istiyoruz"><span id="cDesired">3</span><small>İstenen</small></div>
             <div class="ctr" title="Yeni sürümden kaç pod var"><span id="cUpdated">3</span><small>Güncel</small></div>
             <div class="ctr" title="Trafik alabilen pod sayısı"><span id="cReady">3</span><small>Hazır</small></div>
             <div class="ctr" title="Tüm sürümlerden toplam pod"><span id="cTotal">3</span><small>Toplam</small></div>
@@ -87,45 +74,50 @@
           </div>
         </div>
       </div>
-
-      <div class="cluster-body" id="clusterBody">
-        <div class="edge">
-          <div class="edge-box" id="usersBox" data-ex="service">👥 Kullanıcılar<small>https://app.sirket.com</small></div>
-          <div class="edge-arrow">↓</div>
-          <div class="edge-box" id="ingressBox" data-ex="service">Ingress<small>app.sirket.com → web-app</small></div>
-          <div class="edge-arrow">↓</div>
-          <div class="edge-box" id="serviceBox" data-ex="service">Service<small>web-app:80 → Ready pod'lar</small></div>
-          <div class="responses">
-            <div class="resp-h">Son 40 yanıt (hangi sürüm cevap verdi?)</div>
-            <div id="respStrip" class="resp-strip"></div>
-            <div id="respStats">Trafiği açınca istekler burada görünür.</div>
-          </div>
-        </div>
-        <div class="nodes-wrap">
-          <div class="nodes" id="nodes"></div>
-          <div class="legend" data-ex="pod">
-            <span><i style="border-color:#8d99b8;border-style:dashed"></i>Pending</span>
-            <span><i style="border-color:#f59e0b"></i>ContainerCreating</span>
-            <span><i style="border-color:#eab308;background:#eab30833"></i>Running 0/1</span>
-            <span><i style="border-color:#22c55e"></i>Ready 1/1</span>
-            <span><i style="border-color:#ef4444;background:#ef444433"></i>CrashLoopBackOff</span>
-            <span><i style="border-color:#ef4444;opacity:.4"></i>Terminating</span>
-            <span class="hint">ⓘ Bir pod'a tıkla → pod silinir</span>
-          </div>
-        </div>
-      </div>
     </div>
 
+    <div class="viewport" id="viewport">
+      <div id="scene"></div>
+
+      <div class="hud hud-resp panel">
+        <div class="resp-h">Son 40 yanıt: hangi sürüm cevap verdi?</div>
+        <div id="respStrip" class="resp-strip"></div>
+        <div id="respStats">🚦 Trafiği açınca istekler burada görünür.</div>
+      </div>
+
+      <div class="hud hud-legend panel" data-ex="pod">
+        <span><i style="border-color:#94a3b8"></i>Pending</span>
+        <span><i style="border-color:#38bdf8"></i>Image çekiliyor</span>
+        <span><i style="border-color:#f59e0b"></i>Oluşturuluyor</span>
+        <span><i style="border-color:#eab308"></i>Running 0/1</span>
+        <span><i style="border-color:#22c55e"></i>Ready 1/1</span>
+        <span><i style="border-color:#ef4444"></i>Crash / Terminating</span>
+        <span class="hint">ⓘ pod'a tıkla → silinir</span>
+      </div>
+
+      <div class="hud hud-cam panel">
+        <div class="cam-btns">
+          <button class="btn sm" data-view="overview">🌐 Genel</button>
+          <button class="btn sm" data-view="pipeline">🔧 Pipeline</button>
+          <button class="btn sm" data-view="cluster">☸️ Cluster</button>
+        </div>
+        <label class="chk sm"><input type="checkbox" id="follow" checked> 🎥 kamera akışı takip etsin</label>
+        <div class="cam-hint">🖱 sürükle: döndür · tekerlek: yakınlaş · sağ tık: kaydır</div>
+      </div>
+
+      <div id="tooltip" class="tooltip hidden"></div>
+      <div id="loading" class="loading">3D sahne yükleniyor…</div>
+    </div>
   </section>
 
   <aside class="side">
-    <div class="explain" id="explain">
+    <div class="explain panel" id="explain">
       <h2 id="exTitle"></h2>
       <div id="exBody" class="ex-body"></div>
       <div id="exCodeLabel" class="code-label"></div>
       <pre id="exCode" class="code"></pre>
     </div>
-    <div class="console">
+    <div class="console panel">
       <div class="tabs">
         <button class="tab active" data-tab="log">📜 Loglar</button>
         <button class="tab" data-tab="kubectl">⌨ kubectl get</button>
@@ -137,8 +129,15 @@
   </aside>
 </main>
 
-<div id="packet"></div>
-
-<script src="app.js"></script>
+<script>
+  setTimeout(function () {
+    if (!window.__sceneReady) {
+      document.getElementById('loading').innerHTML =
+        '3D sahne yüklenemedi.<br><small>Sayfayı dosyaya çift tıklayarak değil, bir web sunucusu üzerinden aç.<br>' +
+        'PowerShell: <code>python -m http.server 8765</code> → http://localhost:8765 (ya da VS Code Live Server)</small>';
+    }
+  }, 10000);
+</script>
+<script type="module" src="app.js"></script>
 </body>
 </html>
