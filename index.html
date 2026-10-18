@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CI/CD Laboratuvarı</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">⚙️</span>
+    <div><b>CI/CD Laboratuvarı</b><small>git push → canlı uygulama</small></div>
+  </div>
+
+  <div class="push-box">
+    <span class="prompt">$ git commit -m</span>
+    <input id="commitMsg" value="feat: anasayfaya yeni buton" spellcheck="false" autocomplete="off">
+    <button id="pushBtn" class="btn primary">⬆ git push</button>
+  </div>
+
+  <div class="opts">
+    <select id="scenario" title="Bu push'ta ne olsun?">
+      <option value="ok">✅ Sorunsuz kod</option>
+      <option value="testfail">❌ Test kırılıyor</option>
+      <option value="crash">💥 Uygulama açılışta çöküyor</option>
+    </select>
+    <label class="chk" title="Her adımdan sonra durur, 'Devam' (veya Boşluk tuşu) ile ilerler"><input type="checkbox" id="stepMode"> Adım adım</label>
+    <button id="nextBtn" class="btn" disabled>Devam ▶</button>
+    <label class="speed">Hız <input type="range" id="speed" min="0.5" max="4" step="0.5" value="1"><span id="speedVal">1x</span></label>
+    <button id="helpBtn" class="btn ghost">? Rehber</button>
+  </div>
+</header>
+
+<main class="layout">
+  <section class="stage-area">
+
+    <div class="pipeline">
+      <div class="card" id="card-dev">
+        <div class="card-h" data-ex="dev"><span class="ic">💻</span><div><b>Geliştirici</b><small>senin bilgisayarın</small></div><span class="info">ⓘ</span></div>
+        <pre class="mini-term" id="devTerm"></pre>
+      </div>
+
+      <div class="card" id="card-git">
+        <div class="card-h" data-ex="git"><span class="ic">🐙</span><div><b>Git Sunucusu</b><small>GitHub · sirket/web-app</small></div><span class="info">ⓘ</span></div>
+        <div class="branch">⎇ main</div>
+        <ul class="commits" id="commits"></ul>
+        <div class="webhook" id="webhook">🔔 webhook: push → Jenkins</div>
+      </div>
+
+      <div class="card" id="card-jenkins">
+        <div class="card-h" data-ex="jenkins"><span class="ic">🤵</span><div><b>Jenkins</b><small>CI sunucusu · <span id="buildNo">#1 ✓</span></small></div><span class="info">ⓘ</span></div>
+        <div class="jstages" id="jstages"></div>
+      </div>
+
+      <div class="card" id="card-docker">
+        <div class="card-h" data-ex="docker"><span class="ic">🐳</span><div><b>Docker Build</b><small>Dockerfile → image</small></div><span class="info">ⓘ</span></div>
+        <div class="layers" id="layers"></div>
+        <div class="image-out" id="imageOut"></div>
+      </div>
+
+      <div class="card" id="card-registry">
+        <div class="card-h" data-ex="registry"><span class="ic">📦</span><div><b>Registry</b><small>registry.sirket.com</small></div><span class="info">ⓘ</span></div>
+        <ul class="tags" id="tags"></ul>
+      </div>
+    </div>
+
+    <div class="card cluster" id="card-cluster">
+      <div class="rancher-bar" id="rancherBar">
+        <div class="crumbs" data-ex="rancher">🐮 <b>Rancher</b> <span>›</span> prod-cluster <span>›</span> namespace: default <span>›</span> Deployments <span class="info">ⓘ Rancher nedir?</span></div>
+        <div class="workload">
+          <div class="wl-name" data-ex="deploy"><span class="badge" id="wlBadge">Active</span><b>☸️ web-app</b><code id="wlImage"></code></div>
+          <div class="counters" data-ex="deploy">
+            <div class="ctr" title="spec.replicas — kaç pod istiyoruz"><span id="cDesired">3</span><small>İstenen</small></div>
+            <div class="ctr" title="Yeni sürümden kaç pod var"><span id="cUpdated">3</span><small>Güncel</small></div>
+            <div class="ctr" title="Trafik alabilen pod sayısı"><span id="cReady">3</span><small>Hazır</small></div>
+            <div class="ctr" title="Tüm sürümlerden toplam pod"><span id="cTotal">3</span><small>Toplam</small></div>
+          </div>
+          <div class="wl-actions">
+            <div class="scale" title="kubectl scale">
+              <button id="scaleDown" aria-label="azalt">−</button><span id="replicas">3</span><button id="scaleUp" aria-label="artır">+</button><small>replica</small>
+            </div>
+            <button id="rollbackBtn" class="btn">↩ Rollback</button>
+            <button id="trafficBtn" class="btn">🚦 Trafik: kapalı</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cluster-body" id="clusterBody">
+        <div class="edge">
+          <div class="edge-box" id="usersBox" data-ex="service">👥 Kullanıcılar<small>https://app.sirket.com</small></div>
+          <div class="edge-arrow">↓</div>
+          <div class="edge-box" id="ingressBox" data-ex="service">Ingress<small>app.sirket.com → web-app</small></div>
+          <div class="edge-arrow">↓</div>
+          <div class="edge-box" id="serviceBox" data-ex="service">Service<small>web-app:80 → Ready pod'lar</small></div>
+          <div class="responses">
+            <div class="resp-h">Son 40 yanıt (hangi sürüm cevap verdi?)</div>
+            <div id="respStrip" class="resp-strip"></div>
+            <div id="respStats">Trafiği açınca istekler burada görünür.</div>
+          </div>
+        </div>
+        <div class="nodes-wrap">
+          <div class="nodes" id="nodes"></div>
+          <div class="legend" data-ex="pod">
+            <span><i style="border-color:#8d99b8;border-style:dashed"></i>Pending</span>
+            <span><i style="border-color:#f59e0b"></i>ContainerCreating</span>
+            <span><i style="border-color:#eab308;background:#eab30833"></i>Running 0/1</span>
+            <span><i style="border-color:#22c55e"></i>Ready 1/1</span>
+            <span><i style="border-color:#ef4444;background:#ef444433"></i>CrashLoopBackOff</span>
+            <span><i style="border-color:#ef4444;opacity:.4"></i>Terminating</span>
+            <span class="hint">ⓘ Bir pod'a tıkla → pod silinir</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <aside class="side">
+    <div class="explain" id="explain">
+      <h2 id="exTitle"></h2>
+      <div id="exBody" class="ex-body"></div>
+      <div id="exCodeLabel" class="code-label"></div>
+      <pre id="exCode" class="code"></pre>
+    </div>
+    <div class="console">
+      <div class="tabs">
+        <button class="tab active" data-tab="log">📜 Loglar</button>
+        <button class="tab" data-tab="kubectl">⌨ kubectl get</button>
+        <button id="clearLog" class="btn ghost sm">temizle</button>
+      </div>
+      <div id="log" class="term"></div>
+      <pre id="kubectl" class="term hidden"></pre>
+    </div>
+  </aside>
+</main>
+
+<div id="packet"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
