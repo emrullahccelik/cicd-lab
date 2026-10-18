@@ -1,22 +1,12 @@
 # CI/CD Laboratuvarı
 
-`git push` → GitHub → Jenkins → Docker → Registry → Kubernetes (Rancher) akışını adım adım, görsel olarak gösteren interaktif simülasyon.
+`git push` → GitHub → Jenkins → Docker → Registry → Kubernetes (Rancher) akışını adım adım, 3D ve interaktif olarak gösteren bir simülasyon.
 
-## Çalıştırma
+### 🚀 Canlı demo: **[emrullahccelik.github.io/cicd-lab](https://emrullahccelik.github.io/cicd-lab/)**
 
-> Bu branch (`threejs`) 3D sürümdür. Three.js modül olarak yüklendiği için `index.html`'e çift tıklamak **çalışmaz**; sayfayı bir web sunucusu üzerinden açmak gerekir.
+[![CI/CD Laboratuvarı demo: push sonrası paket boru hattında ilerliyor, Kubernetes pod'ları tek tek yeni sürüme geçiyor](docs/demo.gif)](https://emrullahccelik.github.io/cicd-lab/)
 
-Windows'ta (PowerShell, proje klasöründe):
-
-```powershell
-python -m http.server 8765
-```
-
-Sonra tarayıcıda http://localhost:8765 adresini aç. Alternatif: `npx serve` ya da VS Code **Live Server** eklentisi.
-
-Three.js (r170) `vendor/three/` klasöründe projeye dahildir, internet gerekmez.
-
-**3D sahnede:** sürükle → döndür, tekerlek → yakınlaş, sağ tık → kaydır. Sağ alttaki butonlarla Genel / Pipeline / Cluster görünümüne geçilir; "kamera akışı takip etsin" açıkken kamera push sırasında kendisi gezer.
+<sub>👆 Görsele tıklayınca canlı demo açılır. Kurulum gerekmez, tarayıcıda çalışır.</sub>
 
 ## Neler denenebilir?
 
@@ -31,12 +21,67 @@ Three.js (r170) `vendor/three/` klasöründe projeye dahildir, internet gerekmez
 | **💥 Uygulama çöküyor** | CrashLoopBackOff, `maxUnavailable: 0` sayesinde eski sürüm çalışmaya devam eder, ardından **Rollback** |
 | **⌨ kubectl get** sekmesi | Aynı durumun gerçek `kubectl` çıktısında nasıl göründüğü |
 
-Kartların başlığındaki **ⓘ** simgesine tıklayınca o parçanın açıklaması, örnek kodu ve YAML'ı sağ panelde açılır.
+3D sahnedeki etiketlere ve **ⓘ** simgelerine tıklayınca o parçanın açıklaması, örnek kodu ve YAML'ı sağ panelde açılır.
+
+**Sahne kontrolleri:** sürükle → döndür, tekerlek → yakınlaş, sağ tık → kaydır. Sağ alttaki butonlarla Genel / Pipeline / Cluster görünümüne geçilir. "Kamera akışı takip etsin" açıkken kamera push sırasında kendisi gezer.
+
+## Kendi bilgisayarında çalıştırma
+
+Projede derleme ya da `npm install` yok. Sadece dosyaları bir web sunucusuyla servis etmek yeterli. Three.js (r170) `vendor/three/` klasöründe projeye dahil, internet bağlantısı gerekmez.
+
+> ⚠️ `index.html` dosyasına **çift tıklamak çalışmaz.** Three.js modül olarak yüklendiği için tarayıcılar `file://` üzerinden açılan sayfada bunu engeller. Aşağıdaki yollardan biriyle bir web sunucusu başlat.
+
+Önce projeyi indir:
+
+```bash
+git clone https://github.com/emrullahccelik/cicd-lab.git
+cd cicd-lab
+```
+
+### 🪟 Windows
+
+PowerShell'de, proje klasöründeyken:
+
+```powershell
+python -m http.server 8765
+```
+
+`python` bulunamazsa `py -m http.server 8765` dene ya da Python'u [python.org](https://www.python.org/downloads/) veya Microsoft Store'dan kur.
+
+### 🍎 macOS
+
+Terminal'de, proje klasöründeyken:
+
+```bash
+python3 -m http.server 8765
+```
+
+`python3` macOS'ta genelde hazır gelir. Yoksa ilk çalıştırmada sistem Xcode Command Line Tools'u kurmayı önerir.
+
+### 🐧 Linux
+
+Terminal'de, proje klasöründeyken:
+
+```bash
+python3 -m http.server 8765
+```
+
+Sunucu çalışırken tarayıcıda **http://localhost:8765** adresini aç. Durdurmak için terminalde `Ctrl + C`.
+
+### Python yerine
+
+Hangi işletim sisteminde olursan ol, şunlar da aynı işi görür:
+
+- **Node.js** kuruluysa: `npx serve` (açılan adresi terminal yazar)
+- **VS Code** kullanıyorsan: [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) eklentisini kur, `index.html`'e sağ tıklayıp **Open with Live Server** de.
 
 ## Dosyalar
 
 - `index.html`: sayfa iskeleti
-- `style.css`: görünüm
+- `style.css`: görünüm (açık tema)
 - `app.js`: simülasyon (pipeline, Deployment/ReplicaSet controller'ları, pod yaşam döngüsü, trafik) ve Türkçe açıklamalar
 - `scene.js`: Three.js 3D sahnesi (istasyonlar, borular, Docker katmanları, registry rafı, cluster, pod küpleri, trafik topları)
 - `vendor/three/`: Three.js kütüphanesi (MIT lisansı)
+- `docs/`: README görselleri
+
+İlk 2D sürüm [`b8d4c7a`](https://github.com/emrullahccelik/cicd-lab/tree/b8d4c7a) commit'inde duruyor.
